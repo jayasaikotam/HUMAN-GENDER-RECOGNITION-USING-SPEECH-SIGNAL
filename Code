@@ -1,0 +1,52 @@
+clc
+clear all
+close all
+Fs=8000;                       %Sampling rate
+vin=audiorecorder(Fs,16,1);    %To record audio that is taken as input
+disp('Press any key to start recording');pause
+disp('Start speaking...');
+recordblocking(vin,5);          %To stop recoring after 5 seconds
+disp('End of Recording...');
+y=getaudiodata(vin);            %To store data in array
+t=(0:length(y)-1)/Fs;   
+rmin=Fs/500;                  %Maximum speech frequency at 500Hz=16
+rmax=Fs/40;                   %Minimum speech frequency at 40Hz=200
+c=xcorr(y,rmax);              %Auto-correlation
+r=(-rmax:rmax);
+r1=c(rmax+1:2*rmax+1);          %Positive side of auto correlation waveform
+[cmax i]=max(r1(rmin:rmax));
+rxx=rmin+i-1;
+F0=Fs/rxx;             %Pitch calculation
+disp('press any key to play the recording');pause
+play(vin);
+subplot(3,1,1);
+plot(t,y, 'linewidth', 2);
+set(gca, 'fontsize', 13, 'fontweight', 'bold');
+title('Input audio waveform', 'fontsize', 15);
+ylabel('Amplitude', 'fontsize', 12, 'fontweight', 'bold');
+xlabel('Time(s)', 'fontsize', 12, 'fontweight', 'bold');
+grid on;
+subplot(3,1,2);
+plot(r,c, 'linewidth', 2);
+set(gca, 'fontsize', 13, 'fontweight', 'bold');
+title('Auto-correlated waveform', 'fontsize', 15);
+ylabel('Amplitude', 'fontsize', 12, 'fontweight', 'bold');
+xlabel('Samples', 'fontsize', 12, 'fontweight', 'bold');
+grid on;
+subplot(3,1,3);
+plot(r1,'linewidth', 2);
+set(gca, 'fontsize', 13, 'fontweight', 'bold');
+title('Positive half of auto-correlated waveform', 'fontsize', 15);
+ylabel('Amplitude', 'fontsize', 12, 'fontweight', 'bold');
+xlabel('Samples', 'fontsize', 12, 'fontweight', 'bold');
+grid on;
+if(F0>85 && F0<160)
+    fprintf('The Fundamental frequency is %f Hz',F0);fprintf('\n');
+    disp('It is a Male voice');
+elseif(F0>160 && F0<255)
+    fprintf('The Fundamental frequency is %f Hz',F0);fprintf('\n');
+    disp('It is Female voice');
+else
+    disp('Voice could not be recognised please try again');
+end
+
